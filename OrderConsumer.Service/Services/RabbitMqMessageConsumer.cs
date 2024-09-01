@@ -37,12 +37,12 @@ public class RabbitMqMessageConsumer : BackgroundService
         _logger.LogInformation("RabbitMqMessageConsumer - Started");
 
         var consumer = _rabbitMqService.CreateConsumer();
-        consumer.Received += Consumer_Received;
+        consumer.Received += SaveOrder;
 
         _consumerTag = _rabbitMqService.BasicConsume(consumer);
     }
 
-    private async Task Consumer_Received(object? sender, BasicDeliverEventArgs e)
+    private async Task SaveOrder(object? sender, BasicDeliverEventArgs e)
     {
         _logger.LogInformation("WorkerHostedService - Received");
 
