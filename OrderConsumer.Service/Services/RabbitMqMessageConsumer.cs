@@ -32,6 +32,16 @@ public class RabbitMqMessageConsumer : BackgroundService
         _serviceScopeFactory = serviceScopeFactory;
     }
 
+    protected override async Task ExecuteAsync(CancellationToken stopToken)
+    {
+        _logger.LogInformation("RabbitMqMessageConsumer - Started");
+
+        var consumer = _rabbitMqService.CreateConsumer();
+        consumer.Received += Consumer_Received;
+
+        _consumerTag = _rabbitMqService.BasicConsume(consumer);
+    }
+
     private async Task Consumer_Received(object? sender, BasicDeliverEventArgs e)
     {
         _logger.LogInformation("WorkerHostedService - Received");
@@ -56,16 +66,6 @@ public class RabbitMqMessageConsumer : BackgroundService
         _rabbitMqService.BasicAck(e.DeliveryTag, false);
 
         await Task.Yield();
-    }
-
-    protected override async Task ExecuteAsync(CancellationToken stopToken)
-    {
-        _logger.LogInformation("RabbitMqMessageConsumer - Started");
-
-        var consumer = _rabbitMqService.CreateConsumer();
-        consumer.Received += Consumer_Received;
-
-        _consumerTag = _rabbitMqService.BasicConsume(consumer);
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)
