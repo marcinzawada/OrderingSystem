@@ -1,8 +1,8 @@
 ﻿namespace OrderConsumer.Service.Exceptions;
 
-public class OrderPriceIsInvalidException : Exception
+public class InvalidOrderPriceException : Exception
 {
-    public OrderPriceIsInvalidException(Guid id, decimal price)
+    public InvalidOrderPriceException(Guid id, decimal price)
         : base($"Order with id: {id} have invalid price: {price}")
     {
     }

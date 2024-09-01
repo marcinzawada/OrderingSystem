@@ -34,12 +34,17 @@ public class Order
 
         if (message.Quantity < 1)
         {
-            throw new OrderQuantityIsInvalidException(id, message.Quantity);
+            throw new InvalidOrderQuantityException(id, message.Quantity);
         }
 
         if (message.Price < 0)
         {
-            throw new OrderPriceIsInvalidException(id, message.Price);
+            throw new InvalidOrderPriceException(id, message.Price);
+        }
+
+        if (message.CreatedAt > timeProvider.UtcNow)
+        {
+            throw new InvalidOrderCreatedAtDateException(message.CreatedAt, timeProvider.UtcNow);
         }
 
         var totalPrice = message.Quantity * message.Price;
