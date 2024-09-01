@@ -1,0 +1,80 @@
+version: '3.4'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # RabbitMQ's default port for communication
+      - "5671:5671"   # RabbitMQ's default port for communication SSL
+      - "15672:15672" # RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      net:
+        ipv4_address: 192.168.0.2
+    healthcheck:
+        test: rabbitmq-diagnostics check_port_connectivity     
+        interval: 5s
+        timeout: 5s
+        retries: 12
+    volumes:
+      - ./.containers/rabbitmq_data:/var/lib/rabbitmq/mnesia
+
+  orderproducer.service:
+    image: ${DOCKER_REGISTRY-}orderproducerservice
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    container_name: orderproducer.service
+    build:
+      context: .
+      dockerfile: OrderProducer.Service/Dockerfile
+    ports:
+      - "8080:80"
+      - "4433:443"
+    networks:
+      net:
+        ipv4_address: 192.168.0.5
+    volumes:
+      - ./.containers/logs:/var/lib/logs
+
+  orderconsumer.service:
+    image: ${DOCKER_REGISTRY-}orderconsumerservice
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    container_name: orderconsumer.service
+    build:
+      context: .
+      dockerfile: OrderConsumer.Service/Dockerfile
+    networks:
+      net:
+        ipv4_address: 192.168.0.4
+    volumes:
+      - ./.containers/logs:/var/lib/logs
+
+  orderconsumer.database:
+    image: postgres:latest
+    container_name: orderconsumer.database
+    environment:
+      - POSTGRES_DB=OrderingSystemDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    networks:
+      net:
+        ipv4_address: 192.168.0.3
+    volumes:
+      - ./.containers/orders-db:/var/lib/postgresql/data
+    
+networks:
+  net:
+    driver: bridge
+    ipam:
+          driver: default
+          config:
+              - subnet: "192.168.0.0/24"
+                gateway: "192.168.0.1"
