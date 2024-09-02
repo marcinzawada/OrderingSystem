@@ -44,10 +44,9 @@ public class RabbitMqMessageConsumer : BackgroundService
 
     private async Task SaveOrder(object? sender, BasicDeliverEventArgs e)
     {
-        _logger.LogInformation("WorkerHostedService - Received");
-
         var body = e.Body.ToArray();
         var message = Encoding.UTF8.GetString(body);
+        _logger.LogInformation($"Received new message from RabbitMQ: {message}");
 
         var newOrderMessage = JsonConvert.DeserializeObject<NewOrderMessage>(message);
         ArgumentNullException.ThrowIfNull(newOrderMessage);
@@ -61,7 +60,7 @@ public class RabbitMqMessageConsumer : BackgroundService
             await ordersRepository.SaveChangesAsync();
         }
 
-        _logger.LogInformation($"Added: {message}");
+        _logger.LogInformation($"Added Order to database with id: {order.Id}");
 
         _rabbitMqService.BasicAck(e.DeliveryTag, false);
 

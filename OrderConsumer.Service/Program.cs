@@ -1,13 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using OrderConsumer.Service.Database;
-using OrderConsumer.Service.Domain;
 using OrderConsumer.Service.DTOs;
 using OrderConsumer.Service.Services;
-using RabbitMQ.Client.Events;
 using Serilog;
-using System;
-using System.Text;
 
 namespace OrderConsumer.Service;
 
@@ -15,21 +10,20 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
-
         try
         {
-            Log.Information("Starting web application");
-
             var builder = WebApplication.CreateBuilder(args);
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+
+            Log.Information("Starting web application");
+            Log.Information("This application receives orders from RabbitMQ, calculates the value of the order and writes it to the PostgreSQL database");
 
             builder.Host.UseSerilog((hostContext, services, configuration) => {
                 configuration.ReadFrom.Configuration(hostContext.Configuration);
             });
-
-            // Add services to the container.
 
             builder.Services.AddControllers();
 
@@ -54,8 +48,6 @@ public class Program
                 var db = scope.ServiceProvider.GetRequiredService<DataContext>();
                 db.Database.Migrate();
             }
-
-            // Configure the HTTP request pipeline.
 
             app.UseHttpsRedirection();
 

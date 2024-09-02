@@ -1,7 +1,6 @@
 using OrderProducer.Service.Configs;
 using OrderProducer.Service.Services;
 using Serilog;
-using System.Text;
 
 namespace OrderProducer.Service;
 
@@ -9,15 +8,16 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
-
         try
         {
-            Log.Information("Starting web application");
-
             var builder = WebApplication.CreateBuilder(args);
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(builder.Configuration)
+                .CreateLogger();
+
+            Log.Information("Starting web application");
+            Log.Information("This application creates order creation messages and sends them to the RabbitMQ queue");
 
             builder.Host.UseSerilog((hostContext, services, configuration) =>
             {

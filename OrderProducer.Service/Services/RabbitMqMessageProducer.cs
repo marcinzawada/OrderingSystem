@@ -33,7 +33,7 @@ public class RabbitMqMessageProducer : BackgroundService
 
             _rabbitMqService.PublishBasic(body);
 
-            _logger.LogInformation($"Sent - {jsonMessage}");
+            _logger.LogInformation($"Sent message to RabbitMQ: {jsonMessage}");
 
             var time = _random.Next(_min, _max + 1) * 1000;
 
